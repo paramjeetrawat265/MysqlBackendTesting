@@ -2,7 +2,6 @@ const { dataBase } = require("../models");
 const bcrypt = require('bcrypt');
 var jwt = require('jsonwebtoken');
 
-
 const addUsers = async (req, res) => {
     const { username, password } = req.body;
     bcrypt.hash(password, 5, async function (err, hash) {
@@ -92,8 +91,67 @@ const checkUsers = async (req, res) => {
 }
 
 const rawUsersData = async (req, res) => {
-    const rawUser=await dataBase.sequelize.query("select * from users");
+    const rawUser = await dataBase.sequelize.query("select * from users");
     res.send(rawUser);
+}
+
+const oneToOne = async (req, res) => {
+    // const { username, password, address, city } = req.body;
+    // const data = await dataBase.user.create({ "username": username, "password": password });
+    // if (data && data.id) {
+    //     const contact = await dataBase.contact.create({ "address": address, "city": city, "userId"=data.id});
+    // }
+    // res.send(data)
+
+    // to retrieve the data from the user as well as the contact table
+
+    // console.log("one to one get req")
+    const data2 = await dataBase.user.findAll({
+        attributes: ["username"],
+        include: [{
+            model: dataBase.contact,
+            as: "contactDetails",
+            // attributes: ["city"]
+        }]
+    })
+    res.status(200).send({ msg: "User Data along with details", data: data2 });
+}
+
+const oneToMany = async (req, res) => {
+
+    // const { address, city } = req.body;
+    // const data = await dataBase.contact.create({ address: address, city: city, user_id: 1});
+    // res.status(200).send({ data: data, msg: "Multiple data is added" });
+
+    const data2 = await dataBase.user.findAll({
+        attributes: ["username"],
+        include: [{
+            model: dataBase.contact,
+            // as: "contactDetails",
+            // attributes: ["city"]
+        }]
+    })
+    res.status(200).send({ msg: 'Retrieving Data', data: data2 })
+}
+
+const postManyToMany = async (req, res) => {
+    const { username, password, address, city } = req.body;
+    const data = await dataBase.user.create({ username: username, password: password });
+    // console.log(data);
+    if (data && data.id) {
+        const data2 = await dataBase.contact.create({ address: address, city: city, userId: data.id });
+        res.status(200).send({ msg: "Data Inserted", data: { data, data2 } });
+    }
+
+    // to get all the data of many to many
+}
+
+const getManyToMany = async (req, res) => {
+    const data = await dataBase.user.findAll({
+        include: dataBase.contact
+    })
+    res.status(200).send({ data: data });
+
 }
 
 module.exports = {
@@ -102,5 +160,9 @@ module.exports = {
     updateUsers,
     deleteUsers,
     checkUsers,
-    rawUsersData
+    rawUsersData,
+    oneToOne,
+    oneToMany,
+    getManyToMany,
+    postManyToMany
 }
