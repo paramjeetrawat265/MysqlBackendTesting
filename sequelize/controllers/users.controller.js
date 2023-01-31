@@ -148,10 +148,28 @@ const postManyToMany = async (req, res) => {
 
 const getManyToMany = async (req, res) => {
     const data = await dataBase.user.findAll({
-        include: dataBase.contact
+        // attributes: ["username", "password",
+        //     dataBase.sequelize.fn("Min", dataBase.sequelize.col("id"))
+        // ],
+        include: [{
+            model: dataBase.contact,
+            attributes:[
+                "city","address"
+            ]
+        }],
+        // raw: true
     })
-    res.status(200).send({ data: data });
 
+    // const data2 = await dataBase.user.findAll({
+    //     // where:
+    //     //     dataBase.sequelize.where(dataBase.sequelize.fn("MAX", dataBase.sequelize.col("id")))
+    //     attributes: [
+    //         "username"
+    //     ],
+    //     where: { id: dataBase.sequelize.fn("Max", dataBase.sequelize.col("id")) },
+    //     raw: true
+    // })
+    res.status(200).send({ data: data });
 }
 
 module.exports = {
